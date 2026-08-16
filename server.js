@@ -272,8 +272,8 @@ app.post("/api/notifications", auth(["staff", "admin"]), (req, res) => {
 // Fallback to index.html for direct page loads
 app.get("*", (req, res, next) => {
   if (req.path.startsWith("/api/")) return next();
-  res.sendFile(path.join(__dirname, "public", req.path === "/" ? "index.html" : req.path), (err) => {
-    if (err) res.status(404).sendFile(path.join(__dirname, "public", "index.html"));
+  res.sendFile(path.join(__dirname, req.path === "/" ? "index.html" : req.path), (err) => {
+    if (err) res.status(404).sendFile(path.join(__dirname,"index.html"));
   });
 });
 
