@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Event Registration | AAACET</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar">
+  <a href="index.html" class="logo-block"><div class="crest">AAA</div>
+    <div class="college-name"><strong>AAA College of Engineering</strong><span>and Technology, Sivakasi</span></div></a>
+  <ul class="nav-links"><li><a href="index.html">Home</a></li><li><a href="events.html" class="active">Events</a></li></ul>
+  <div class="nav-cta"><a href="student-dashboard.html" class="btn btn-maroon">👤 My Dashboard</a></div>
+</nav>
+
+<div class="container">
+  <div class="breadcrumb"><a href="index.html">Home</a> › <a href="events.html">Events</a> › Registration</div>
+
+  <div class="panel" style="margin-bottom:20px;">
+    <div class="flex justify-between items-center">
+      <div><h3 class="mb0" style="font-size:18px">📋 Confirm Your Registration</h3><p class="muted" style="margin:2px 0 0;font-size:13px">Logged in as <b id="who"></b></p></div>
+      <div class="stepper">
+        <div class="step active"><div class="dot">1</div>Registration</div>
+        <div class="step-line"></div><div class="step"><div class="dot">2</div>Payment</div>
+        <div class="step-line"></div><div class="step"><div class="dot">3</div>Confirmation</div>
+      </div>
+    </div>
+  </div>
+
+  <p id="err" style="color:var(--red);font-size:13px;display:none;"></p>
+
+  <div id="event-summary" style="display:grid;grid-template-columns:1.4fr 1fr;gap:20px;">
+    <p class="muted">Loading event…</p>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+  requireRole("student", "student-login.html");
+  const user = getUser();
+  document.getElementById("who").textContent = `${user.name} (${user.register_no})`;
+
+  (async () => {
+    const id = getParam("id");
+    try {
+      const e = await apiFetch("/api/events/" + id);
+      const seatsLeft = e.seats_total - e.seats_taken;
+      document.getElementById("event-summary").innerHTML = `
+        <div class="panel">
+          <h3>📅 Event Details</h3>
+          <table>
+            <tr><td class="muted">Event Name</td><td style="text-align:right;font-weight:600">${e.name}</td></tr>
+            <tr><td class="muted">Organized By</td><td style="text-align:right;font-weight:600">${e.department}</td></tr>
+            <tr><td class="muted">Type</td><td style="text-align:right;font-weight:600">${e.type}</td></tr>
+            <tr><td class="muted">Date</td><td style="text-align:right;font-weight:600">${e.event_date}</td></tr>
+            <tr><td class="muted">Venue</td><td style="text-align:right;font-weight:600">${e.venue || "-"}</td></tr>
+            <tr><td class="muted">Registration Fee</td><td style="text-align:right;font-weight:700;color:var(--maroon-700)">₹${e.fee}</td></tr>
+            <tr><td class="muted">Seats Left</td><td style="text-align:right;font-weight:600">${seatsLeft} / ${e.seats_total}</td></tr>
+          </table>
+          <h3 class="mt24">👤 Your Details (from your account)</h3>
+          <table>
+            <tr><td class="muted">Name</td><td style="text-align:right;font-weight:600">${user.name}</td></tr>
+            <tr><td class="muted">Register No.</td><td style="text-align:right;font-weight:600">${user.register_no}</td></tr>
+            <tr><td class="muted">Department</td><td style="text-align:right;font-weight:600">${user.department}</td></tr>
+            <tr><td class="muted">Year</td><td style="text-align:right;font-weight:600">${user.year}</td></tr>
+          </table>
+          <label class="mt16" style="font-size:12.5px;color:var(--ink-600);display:flex;gap:8px;">
+            <input required id="declare" type="checkbox" style="margin-top:3px;">
+            I confirm the above information is correct and I agree to abide by the rules and regulations of the event.
+          </label>
+          <div class="flex gap12 mt16">
+            <a href="event-details.html?id=${e.id}" class="btn" style="background:#c0392b;color:#fff">✕ Cancel</a>
+            <button id="proceed-btn" class="btn btn-navy" style="flex:1">→ Proceed to Payment</button>
+          </div>
+        </div>
+        <div class="panel" style="background:var(--maroon-50);border-color:#f0d9d9;">
+          <h3>ℹ️ Important Instructions</h3>
+          <ul style="padding-left:18px;font-size:12.5px;color:var(--ink-600);line-height:1.9;margin:0">
+            <li>You'll be redirected to the payment page next.</li>
+            <li>Your registration is saved instantly to the college database.</li>
+            <li>An admin/staff member will verify your payment before your QR pass is generated.</li>
+            <li>Contact the event coordinator for any queries.</li>
+          </ul>
+        </div>`;
+
+      document.getElementById("proceed-btn").addEventListener("click", async () => {
+        const errBox = document.getElementById("err");
+        errBox.style.display = "none";
+        if (!document.getElementById("declare").checked) { errBox.textContent = "Please accept the declaration to continue."; errBox.style.display="block"; return; }
+        try {
+          const data = await apiFetch("/api/registrations", { method:"POST", body: JSON.stringify({ event_id: e.id }) });
+          window.location.href = "payment.html?reg=" + data.registration_id;
+        } catch (err) {
+          errBox.textContent = err.message; errBox.style.display = "block";
+        }
+      });
+    } catch (err) {
+      document.getElementById("event-summary").innerHTML = `<p class="muted">Couldn't load event: ${err.message}</p>`;
+    }
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Staff Login | AAACET</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar">
+  <a href="index.html" class="logo-block"><div class="crest">AAA</div>
+    <div class="college-name"><strong>AAA College of Engineering</strong><span>and Technology, Sivakasi</span></div></a>
+  <ul class="nav-links"><li><a href="index.html">Home</a></li><li><a href="events.html">Events</a></li></ul>
+  <div class="nav-cta"><a href="student-login.html" class="btn btn-maroon">👤 Student Login</a><a href="staff-login.html" class="btn btn-gold">👤 Staff Login</a></div>
+</nav>
+
+<div class="auth-shell">
+  <div class="auth-visual">
+    <h2>Welcome Back, Staff!</h2>
+    <p>Login to manage events, view registrations and verify payments.</p>
+    <div class="auth-feature"><div class="fi">📅</div><div><b>Manage Events</b></div></div>
+    <div class="auth-feature"><div class="fi">👥</div><div><b>View &amp; Verify Registrations</b></div></div>
+    <div class="auth-feature"><div class="fi">🔔</div><div><b>Send Notifications</b></div></div>
+  </div>
+  <div class="auth-form-wrap">
+    <div class="auth-card panel">
+      <div class="aicon" style="background:#fdf1de">🧑‍💼</div>
+      <h3 class="center" style="font-size:19px">Staff Login</h3>
+      <p id="err" class="center" style="color:var(--red);font-size:13px;display:none;margin:6px 0;"></p>
+      <form id="login-form">
+        <div class="form-group"><label>Staff ID</label><input id="l-staffid" placeholder="e.g. STAFF1025" required></div>
+        <div class="form-group"><label>College Email</label><input type="email" id="l-email" required></div>
+        <div class="form-group"><label>Password</label><input type="password" id="l-pass" required></div>
+        <div class="panel" style="background:var(--maroon-50);border-color:#f0d9d9;padding:10px 12px;margin-bottom:16px;">
+          <p class="mb0" style="font-size:11px;color:var(--ink-600)">Demo staff account — Staff ID: <b>STAFF1025</b>, Email: <b>karthik.r@aaacet.ac.in</b>, Password: <b>staff123</b></p>
+        </div>
+        <button type="submit" class="btn btn-navy btn-block">🔒 Login</button>
+        <a href="index.html" class="btn btn-outline btn-block mt8">← Back to Home</a>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+  document.getElementById("login-form").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const errBox = document.getElementById("err");
+    errBox.style.display = "none";
+    try {
+      const body = { staff_id: qs("#l-staffid").value, email: qs("#l-email").value, password: qs("#l-pass").value };
+      const data = await apiFetch("/api/auth/staff/login", { method:"POST", body: JSON.stringify(body) });
+      setSession(data.token, "staff", data.user);
+      window.location.href = "staff-dashboard.html";
+    } catch (err) {
+      errBox.textContent = err.message; errBox.style.display = "block";
+    }
+  });
+</script>
+</body>
+</html>

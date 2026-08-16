@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Student Account | AAACET</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar">
+  <a href="index.html" class="logo-block"><div class="crest">AAA</div>
+    <div class="college-name"><strong>AAA College of Engineering</strong><span>and Technology, Sivakasi</span></div></a>
+  <ul class="nav-links"><li><a href="index.html">Home</a></li><li><a href="events.html">Events</a></li></ul>
+  <div class="nav-cta"><a href="student-login.html" class="btn btn-maroon">👤 Student Login</a></div>
+</nav>
+
+<div class="container" style="max-width:700px;padding-top:30px;padding-bottom:40px;">
+  <div class="panel">
+    <div class="aicon" style="margin:0 auto 12px;">🎓</div>
+    <h3 class="center" style="font-size:19px">Create Student Account</h3>
+    <p class="center muted" style="font-size:13px;margin-top:-6px">Register once to book events, get QR passes and track your registrations.</p>
+    <p id="err" class="center" style="color:var(--red);font-size:13px;display:none;margin:8px 0;"></p>
+
+    <form id="reg-form">
+      <div class="form-grid">
+        <div class="form-group"><label>Full Name *</label><input required id="r-name"></div>
+        <div class="form-group"><label>Register Number *</label><input required id="r-regno" placeholder="e.g. 21IT045"></div>
+      </div>
+      <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr">
+        <div class="form-group"><label>Department *</label>
+          <select required id="r-dept"><option value="">Select</option>
+            <option>CSE</option><option>IT</option><option>AIDS</option><option>Cyber Security</option>
+            <option>ECE</option><option>EEE</option><option>Civil</option><option>Mechanical</option></select></div>
+        <div class="form-group"><label>Year *</label>
+          <select required id="r-year"><option value="">Select</option><option>I</option><option>II</option><option>III</option><option>IV</option></select></div>
+        <div class="form-group"><label>Section</label>
+          <select id="r-sec"><option value="">Select</option><option>A</option><option>B</option><option>C</option></select></div>
+      </div>
+      <div class="form-group">
+        <label>Gender</label>
+        <div class="radio-row">
+          <label><input type="radio" name="gender" value="Male" checked> Male</label>
+          <label><input type="radio" name="gender" value="Female"> Female</label>
+          <label><input type="radio" name="gender" value="Other"> Other</label>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label>Mobile Number *</label><input required id="r-mobile" maxlength="10"></div>
+        <div class="form-group"><label>College Email *</label><input required type="email" id="r-email"></div>
+      </div>
+      <div class="form-group"><label>Password *</label><input required type="password" id="r-pass" minlength="6" placeholder="At least 6 characters"></div>
+      <button type="submit" class="btn btn-navy btn-block">Create Account</button>
+      <p class="center mt16" style="font-size:12.5px;color:var(--ink-600)">Already have an account? <a href="student-login.html" style="color:var(--maroon-700);font-weight:700">Login here</a></p>
+    </form>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+  document.getElementById("reg-form").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const errBox = document.getElementById("err");
+    errBox.style.display = "none";
+    try {
+      const body = {
+        name: qs("#r-name").value, register_no: qs("#r-regno").value, department: qs("#r-dept").value,
+        year: qs("#r-year").value, section: qs("#r-sec").value,
+        gender: document.querySelector('input[name=gender]:checked').value,
+        mobile: qs("#r-mobile").value, email: qs("#r-email").value, password: qs("#r-pass").value
+      };
+      const data = await apiFetch("/api/auth/student/register", { method:"POST", body: JSON.stringify(body) });
+      setSession(data.token, "student", data.user);
+      window.location.href = "student-dashboard.html";
+    } catch (err) {
+      errBox.textContent = err.message;
+      errBox.style.display = "block";
+    }
+  });
+</script>
+</body>
+</html>

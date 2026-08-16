@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Staff Dashboard | AAACET</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="dash-shell">
+  <aside class="sidebar">
+    <div class="brand"><div class="crest" style="width:34px;height:34px;font-size:11px">AAA</div>STAFF DASHBOARD</div>
+    <a class="mlink active" href="staff-dashboard.html">🏠 Dashboard</a>
+    <a class="mlink" href="#" onclick="logout();return false;" style="border-top:1px solid rgba(255,255,255,.08);margin-top:auto;padding-top:14px;">↩ Logout</a>
+  </aside>
+  <div class="dash-main">
+    <div class="dash-topbar">
+      <div style="font-weight:700;color:var(--maroon-900)">Staff Dashboard</div>
+      <div id="who" class="flex items-center gap8" style="font-size:12.5px"></div>
+    </div>
+    <div class="dash-body">
+      <div class="panel" style="margin-bottom:18px;">
+        <h3 class="mb0" id="welcome">Welcome!</h3>
+        <p class="muted" style="font-size:13px;margin:4px 0 0" id="sub"></p>
+      </div>
+
+      <div class="kpi-row" id="kpis">
+        <div class="kpi"><b>…</b><span>Total Events</span></div>
+        <div class="kpi"><b>…</b><span>Total Registrations</span></div>
+        <div class="kpi"><b>…</b><span>Verified</span></div>
+        <div class="kpi"><b>…</b><span>Awaiting Verification</span></div>
+      </div>
+
+      <div class="panel" style="margin-bottom:18px;">
+        <div class="flex justify-between items-center"><h3 class="mb0">📅 Add a New Event</h3></div>
+        <p id="event-err" style="color:var(--red);font-size:12.5px;display:none;"></p>
+        <form id="event-form" class="form-grid mt8">
+          <div class="form-group"><label>Event Name *</label><input required id="e-name"></div>
+          <div class="form-group"><label>Department *</label><input required id="e-dept" placeholder="e.g. Department of CSE"></div>
+          <div class="form-group"><label>Type *</label>
+            <select required id="e-type"><option value="">Select</option><option>Symposium</option><option>Workshop</option><option>Seminar</option><option>Technical Events</option><option>Sports</option><option>Cultural</option><option>Hackathon</option></select></div>
+          <div class="form-group"><label>Date *</label><input required id="e-date" placeholder="e.g. 20 May 2026"></div>
+          <div class="form-group"><label>Time</label><input id="e-time" placeholder="e.g. 10:00 AM - 01:00 PM"></div>
+          <div class="form-group"><label>Venue</label><input id="e-venue"></div>
+          <div class="form-group"><label>Fee (₹)</label><input id="e-fee" type="number" value="0"></div>
+          <div class="form-group"><label>Total Seats</label><input id="e-seats" type="number" value="100"></div>
+          <div class="form-group" style="grid-column:1/-1"><label>About</label><textarea id="e-about" rows="2"></textarea></div>
+          <div style="grid-column:1/-1"><button type="submit" class="btn btn-navy">➕ Create Event</button></div>
+        </form>
+      </div>
+
+      <div class="panel">
+        <div class="flex justify-between items-center"><h3 class="mb0">👥 Student Registrations — Verify Payments</h3></div>
+        <table class="mt8" id="regs-table"><tr><td class="muted">Loading…</td></tr></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+  requireRole("staff", "staff-login.html");
+  const user = getUser();
+  document.getElementById("welcome").textContent = `Welcome, ${user.name}! 👋`;
+  document.getElementById("sub").textContent = `${user.staff_id} · ${user.designation || ""} · ${user.department}`;
+  document.getElementById("who").innerHTML = `<b>${user.name}</b>`;
+
+  async function loadRegs(){
+    const regs = await apiFetch("/api/registrations");
+    const events = await apiFetch("/api/events");
+    document.getElementById("kpis").innerHTML = `
+      <div class="kpi"><b>${events.length}</b><span>Total Events</span></div>
+      <div class="kpi"><b>${regs.length}</b><span>Total Registrations</span></div>
+      <div class="kpi"><b>${regs.filter(r=>r.status==='verified').length}</b><span>Verified</span></div>
+      <div class="kpi"><b>${regs.filter(r=>r.status==='pending_verification').length}</b><span>Awaiting Verification</span></div>`;
+
+    const table = document.getElementById("regs-table");
+    if (!regs.length) { table.innerHTML = `<tr><td class="muted">No registrations yet.</td></tr>`; return; }
+    table.innerHTML = `<tr><th>Student</th><th>Reg No.</th><th>Event</th><th>Txn ID</th><th>Amount</th><th>Status</th><th></th></tr>` +
+      regs.map(r => {
+        let pill = `<span class="pill pill-amber">Not Paid</span>`;
+        if (r.status === "pending_verification") pill = `<span class="pill pill-blue">Pending Verify</span>`;
+        if (r.status === "verified") pill = `<span class="pill pill-green">Verified</span>`;
+        const action = r.status === "pending_verification"
+          ? `<button class="btn btn-navy btn-sm" onclick="verify(${r.id})">✓ Verify</button> <button class="btn btn-sm" style="background:#c0392b;color:#fff" onclick="reject(${r.id})">✕</button>`
+          : "";
+        return `<tr><td>${r.student_name}</td><td>${r.register_no}</td><td>${r.event_name}</td><td>${r.txn_id||"-"}</td><td>₹${r.amount||0}</td><td>${pill}</td><td>${action}</td></tr>`;
+      }).join("");
+  }
+
+  async function verify(id){
+    try { await apiFetch(`/api/registrations/${id}/verify`, { method:"POST" }); loadRegs(); }
+    catch(err){ alert(err.message); }
+  }
+  async function reject(id){
+    try { await apiFetch(`/api/registrations/${id}/reject`, { method:"POST" }); loadRegs(); }
+    catch(err){ alert(err.message); }
+  }
+
+  document.getElementById("event-form").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const errBox = document.getElementById("event-err");
+    errBox.style.display = "none";
+    try {
+      await apiFetch("/api/events", { method:"POST", body: JSON.stringify({
+        name: qs("#e-name").value, department: qs("#e-dept").value, type: qs("#e-type").value,
+        event_date: qs("#e-date").value, event_time: qs("#e-time").value, venue: qs("#e-venue").value,
+        fee: Number(qs("#e-fee").value)||0, seats_total: Number(qs("#e-seats").value)||100, about: qs("#e-about").value
+      })});
+      document.getElementById("event-form").reset();
+      loadRegs();
+      alert("Event created! Students can now see it on the Events page.");
+    } catch (err) { errBox.textContent = err.message; errBox.style.display = "block"; }
+  });
+
+  loadRegs();
+</script>
+</body>
+</html>

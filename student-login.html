@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Login | AAACET</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar">
+  <a href="index.html" class="logo-block"><div class="crest">AAA</div>
+    <div class="college-name"><strong>AAA College of Engineering</strong><span>and Technology, Sivakasi</span></div></a>
+  <ul class="nav-links"><li><a href="index.html">Home</a></li><li><a href="events.html">Events</a></li></ul>
+  <div class="nav-cta"><a href="student-login.html" class="btn btn-maroon">👤 Student Login</a><a href="staff-login.html" class="btn btn-gold">👤 Staff Login</a></div>
+</nav>
+
+<div class="auth-shell">
+  <div class="auth-visual">
+    <h2>Welcome Back!</h2>
+    <p>Login to access your registered events, QR Entry Pass, and profile.</p>
+    <div class="auth-feature"><div class="fi">📅</div><div><b>Register for Events</b></div></div>
+    <div class="auth-feature"><div class="fi">🎫</div><div><b>Download QR Pass</b></div></div>
+    <div class="auth-feature"><div class="fi">📖</div><div><b>View Event History</b></div></div>
+  </div>
+  <div class="auth-form-wrap">
+    <div class="auth-card panel">
+      <div class="aicon">🎓</div>
+      <h3 class="center" style="font-size:19px">Student Login</h3>
+      <p id="err" class="center" style="color:var(--red);font-size:13px;display:none;margin:6px 0;"></p>
+      <form id="login-form">
+        <div class="form-group"><label>Register Number</label><input id="l-regno" placeholder="Enter your register number"></div>
+        <div class="form-group"><label>College Email</label><input type="email" id="l-email" placeholder="Enter your college email"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="l-pass" required placeholder="Enter your password"></div>
+        <button type="submit" class="btn btn-navy btn-block">🔒 Login</button>
+        <a href="index.html" class="btn btn-outline btn-block mt8">← Back to Home</a>
+        <p class="center mt16" style="font-size:12.5px;color:var(--ink-600)">Don't have an account?<br><a href="student-register.html" style="color:var(--maroon-700);font-weight:700">👤 Register Now</a></p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+  document.getElementById("login-form").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const errBox = document.getElementById("err");
+    errBox.style.display = "none";
+    try {
+      const body = { register_no: qs("#l-regno").value, email: qs("#l-email").value, password: qs("#l-pass").value };
+      const data = await apiFetch("/api/auth/student/login", { method:"POST", body: JSON.stringify(body) });
+      setSession(data.token, "student", data.user);
+      window.location.href = "student-dashboard.html";
+    } catch (err) {
+      errBox.textContent = err.message;
+      errBox.style.display = "block";
+    }
+  });
+</script>
+</body>
+</html>

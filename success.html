@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registration Status | AAACET</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+<nav class="navbar">
+  <a href="index.html" class="logo-block"><div class="crest">AAA</div>
+    <div class="college-name"><strong>AAA College of Engineering</strong><span>and Technology, Sivakasi</span></div></a>
+  <ul class="nav-links"><li><a href="index.html">Home</a></li><li><a href="events.html">Events</a></li></ul>
+  <div class="nav-cta"><a href="student-dashboard.html" class="btn btn-maroon">👤 My Dashboard</a></div>
+</nav>
+
+<div class="container" style="padding-top:24px" id="content"><p class="muted">Loading…</p></div>
+
+<script src="js/api.js"></script>
+<script>
+  requireRole("student", "student-login.html");
+  const regId = getParam("reg");
+
+  async function load(){
+    try {
+      const r = await apiFetch("/api/registrations/" + regId);
+      const content = document.getElementById("content");
+
+      if (r.status !== "verified") {
+        content.innerHTML = `
+          <div class="panel center" style="background:#fdf1de;border-color:#f3e0b8;padding:40px;">
+            <div style="font-size:36px;margin-bottom:10px;">⏳</div>
+            <h3 style="color:var(--amber)">Payment Submitted — Waiting for Verification</h3>
+            <p class="muted" style="font-size:13.5px;max-width:420px;margin:8px auto 20px;">
+              Your transaction ID <b>${r.txn_id || ""}</b> for <b>${r.event_name}</b> has been received.
+              An admin or staff member will verify it shortly and your QR Entry Pass will appear here automatically.
+            </p>
+            <button class="btn btn-navy" onclick="load()">🔄 Refresh Status</button>
+          </div>`;
+        return;
+      }
+
+      content.innerHTML = `
+        <div class="panel" style="background:#e4f6ec;border-color:#c7ecd6;display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;">
+          <div class="flex items-center gap12">
+            <div style="width:40px;height:40px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;">✓</div>
+            <div><h3 class="mb0" style="color:var(--green)">Registration Verified!</h3><p class="muted mb0" style="font-size:13px">Payment verified — your QR entry pass is ready.</p></div>
+          </div>
+          <div style="font-size:28px">🎉</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:20px;">
+          <div class="panel">
+            <h3>👤 Student Information</h3>
+            <table>
+              <tr><td class="muted">Name</td><td style="text-align:right;font-weight:600">${r.student_name}</td></tr>
+              <tr><td class="muted">Register No.</td><td style="text-align:right;font-weight:600">${r.register_no}</td></tr>
+              <tr><td class="muted">Department</td><td style="text-align:right;font-weight:600">${r.student_department}</td></tr>
+              <tr><td class="muted">Mobile</td><td style="text-align:right;font-weight:600">${r.mobile}</td></tr>
+              <tr><td class="muted">Email</td><td style="text-align:right;font-weight:600">${r.email}</td></tr>
+            </table>
+            <h3 class="mt24">📅 Event Information</h3>
+            <table>
+              <tr><td class="muted">Event</td><td style="text-align:right;font-weight:600">${r.event_name}</td></tr>
+              <tr><td class="muted">Date</td><td style="text-align:right;font-weight:600">${r.event_date}</td></tr>
+              <tr><td class="muted">Venue</td><td style="text-align:right;font-weight:600">${r.venue}</td></tr>
+            </table>
+          </div>
+          <div class="panel center">
+            <p style="color:var(--gold-600);font-weight:700;font-size:12px;margin-bottom:12px;">★ QR ENTRY PASS ★</p>
+            <div class="qr-box"><div id="pass-qr"></div></div>
+            <p class="muted mt16" style="font-size:11.5px;margin-bottom:2px;">PASS ID</p>
+            <p style="font-weight:800;color:var(--maroon-700);font-size:15px;margin:0 0 16px;">${r.pass_id}</p>
+            <div class="flex justify-between" style="font-size:12px;text-align:left;margin-bottom:16px;">
+              <div><p class="muted mb0" style="font-size:10.5px">STATUS</p><span class="pill pill-green">VERIFIED ✓</span></div>
+              <div style="text-align:right"><p class="muted mb0" style="font-size:10.5px">SEAT</p><b>${r.seat_no}</b></div>
+            </div>
+            <a href="#" onclick="window.print();return false;" class="btn btn-navy btn-block mb0">🖨 Print Pass</a>
+          </div>
+        </div>`;
+      renderQR(document.getElementById("pass-qr"), r.pass_id + "|" + r.student_name + "|" + r.event_name);
+    } catch (err) {
+      document.getElementById("content").innerHTML = `<p class="muted">Couldn't load: ${err.message}</p>`;
+    }
+  }
+  load();
+</script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gallery | AAACET</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar">
+  <a href="index.html" class="logo-block"><div class="crest">AAA</div>
+    <div class="college-name"><strong>AAA College of Engineering</strong><span>and Technology, Sivakasi</span></div></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li><li><a href="events.html">Events</a></li>
+    <li><a href="index.html#depts">Departments</a></li><li><a href="gallery.html" class="active">Gallery</a></li>
+    <li><a href="index.html#about">About Us</a></li><li><a href="index.html#contact">Contact Us</a></li>
+  </ul>
+  <div class="nav-cta"><a href="student-login.html" class="btn btn-maroon">👤 Student Login</a><a href="staff-login.html" class="btn btn-gold">👤 Staff Login</a></div>
+</nav>
+
+<div style="background:linear-gradient(120deg,var(--maroon-900),var(--navy-900));color:#fff;padding:36px 0;text-align:center;">
+  <h1 style="margin:0 0 6px">Gallery</h1>
+  <p class="muted" style="color:#e3d7d2;font-size:13px">Home › Gallery</p>
+</div>
+
+<div class="container" style="padding-top:24px">
+  <div class="filters-bar">
+    <div class="field"><label>Filter by Department</label><select><option>All Departments</option><option>CSE</option><option>IT</option><option>ECE</option></select></div>
+    <div class="field"><label>Filter by Year</label><select><option>All Years</option><option>2026</option><option>2025</option></select></div>
+    <div class="field"><label>Sort by</label><select><option>Latest First</option><option>Oldest First</option></select></div>
+    <a href="admin-login.html" class="btn btn-navy">⚙️ Admin Panel</a>
+  </div>
+
+  <div class="gallery-grid" id="gallery-grid"></div>
+
+  <div class="flex" style="justify-content:center;gap:8px;margin:26px 0;">
+    <button class="btn btn-outline btn-sm">1</button><button class="btn btn-outline btn-sm">2</button><button class="btn btn-outline btn-sm">3</button>
+    <span class="muted">…</span><button class="btn btn-outline btn-sm">8</button><button class="btn btn-outline btn-sm">→</button>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <div><h5>AAA College of Engineering and Technology</h5><p style="font-size:12.5px;color:#9ba3c4">Empowering Engineers, Shaping the Future.</p></div>
+    <div><h5>Quick Links</h5><ul><li>Home</li><li>Events</li><li>Gallery</li></ul></div>
+    <div><h5>Departments</h5><ul><li>CSE</li><li>IT</li><li>AI &amp; DS</li></ul></div>
+    <div><h5>Contact Us</h5><ul><li>📞 +91 4562 226655</li><li>✉️ info@aaacet.ac.in</li></ul></div>
+  </div>
+  <div class="footer-bottom">© 2026 AAA College of Engineering and Technology, Sivakasi. All Rights Reserved.</div>
+</footer>
+
+<script src="js/api.js"></script>
+<script>
+  const galleryItems = [
+    {name:"TechX Symposium 2026", dept:"CSE Department", date:"15 Mar 2026", count:120, bg:"bg1"},
+    {name:"AI & ML Workshop", dept:"CSE Department", date:"25 Feb 2026", count:95, bg:"bg2"},
+    {name:"CodeSprint 2K26", dept:"CSE Department", date:"10 Apr 2026", count:95, bg:"bg3"},
+    {name:"Annual Sports Day 2026", dept:"Physical Education", date:"05 May 2026", count:150, bg:"bg4"},
+    {name:"Aarohan 2K26 (Annual Day)", dept:"Cultural Committee", date:"20 Apr 2026", count:110, bg:"bg2"},
+    {name:"Industry Expert Seminar", dept:"IT Department", date:"18 Feb 2026", count:70, bg:"bg1"},
+    {name:"Guest Lecture Series", dept:"Cyber Security Dept", date:"22 Jan 2026", count:60, bg:"bg3"},
+    {name:"Hackathon 2K26", dept:"CSE Department", date:"12 Apr 2026", count:80, bg:"bg4"},
+  ];
+  document.getElementById("gallery-grid").innerHTML = galleryItems.map(g=>`
+    <div class="gallery-card">
+      <div class="thumb event-banner ${g.bg}"><span class="count">📷 ${g.count} Photos</span></div>
+      <div class="gbody">
+        <div style="font-weight:700;font-size:13.5px">${g.name}</div>
+        <div class="gd">${g.dept}</div>
+        <div class="muted" style="font-size:11.5px;margin:4px 0 10px">📅 ${g.date}</div>
+        <a href="#" class="btn btn-outline btn-sm btn-block">View Gallery →</a>
+      </div>
+    </div>`).join("");
+</script>
+</body>
+</html>

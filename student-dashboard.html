@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Dashboard | AAACET</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar">
+  <a href="index.html" class="logo-block"><div class="crest">AAA</div>
+    <div class="college-name"><strong>AAA College of Engineering</strong><span>and Technology, Sivakasi</span></div></a>
+  <ul class="nav-links"><li><a href="index.html">Home</a></li><li><a href="events.html">Events</a></li></ul>
+  <div class="nav-cta"><a href="#" onclick="logout();return false;" class="btn btn-maroon">↩ Logout</a></div>
+</nav>
+
+<div class="container" style="padding-top:24px">
+  <div class="panel" style="margin-bottom:20px;">
+    <h3 class="mb0" id="welcome">Welcome!</h3>
+    <p class="muted" style="font-size:13px;margin:4px 0 0" id="sub"></p>
+  </div>
+
+  <div class="section-title"><h2 style="font-size:19px">My Registrations</h2><a href="events.html" class="btn btn-outline btn-sm">+ Register for New Event</a></div>
+  <div id="regs-list"><p class="muted">Loading…</p></div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+  requireRole("student", "student-login.html");
+  const user = getUser();
+  document.getElementById("welcome").textContent = `Welcome, ${user.name}! 👋`;
+  document.getElementById("sub").textContent = `${user.register_no} · ${user.department} · Year ${user.year}`;
+
+  (async () => {
+    try {
+      const regs = await apiFetch("/api/registrations/me");
+      const list = document.getElementById("regs-list");
+      if (!regs.length) { list.innerHTML = `<div class="empty-box"><span class="ei">📅</span>You haven't registered for any events yet.</div>`; return; }
+      list.innerHTML = regs.map(r => {
+        let statusPill = `<span class="pill pill-amber">Payment Pending</span>`;
+        if (r.status === "pending_verification") statusPill = `<span class="pill pill-blue">Waiting for Verification</span>`;
+        if (r.status === "verified") statusPill = `<span class="pill pill-green">Verified ✓</span>`;
+        let action = `<a href="payment.html?reg=${r.id}" class="btn btn-navy btn-sm">Pay Now</a>`;
+        if (r.status === "pending_verification") action = `<button class="btn btn-outline btn-sm" disabled>Awaiting Admin</button>`;
+        if (r.status === "verified") action = `<a href="success.html?reg=${r.id}" class="btn btn-gold btn-sm">View QR Pass</a>`;
+        return `
+        <div class="panel" style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <b>${r.event_name}</b><br>
+            <span class="muted" style="font-size:12.5px">${r.department} · 📅 ${r.event_date} · ₹${r.fee}</span><br>
+            ${statusPill}
+          </div>
+          ${action}
+        </div>`;
+      }).join("");
+    } catch (err) {
+      document.getElementById("regs-list").innerHTML = `<p class="muted">Couldn't load: ${err.message}</p>`;
+    }
+  })();
+</script>
+</body>
+</html>

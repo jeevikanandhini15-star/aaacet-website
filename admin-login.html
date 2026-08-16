@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login | AAACET</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar">
+  <a href="index.html" class="logo-block"><div class="crest">AAA</div>
+    <div class="college-name"><strong>AAA College of Engineering</strong><span>and Technology, Sivakasi</span></div></a>
+  <ul class="nav-links"><li><a href="index.html">Home</a></li></ul>
+  <div class="nav-cta"><a href="student-login.html" class="btn btn-maroon">👤 Student</a><a href="staff-login.html" class="btn btn-gold">👤 Staff</a></div>
+</nav>
+<div class="auth-form-wrap" style="min-height:calc(100vh - 66px)">
+  <div class="auth-card panel">
+    <div class="aicon" style="background:#e7edfb">🛡️</div>
+    <h3 class="center" style="font-size:19px">Admin Login</h3>
+    <p id="err" class="center" style="color:var(--red);font-size:13px;display:none;margin:6px 0;"></p>
+    <form id="login-form">
+      <div class="form-group"><label>Username</label><input id="l-user" required></div>
+      <div class="form-group"><label>Password</label><input type="password" id="l-pass" required></div>
+      <div class="panel" style="background:var(--maroon-50);border-color:#f0d9d9;padding:10px 12px;margin-bottom:16px;">
+        <p class="mb0" style="font-size:11px;color:var(--ink-600)">Demo admin — Username: <b>admin</b>, Password: <b>admin123</b></p>
+      </div>
+      <button type="submit" class="btn btn-navy btn-block">🔒 Login</button>
+      <a href="index.html" class="btn btn-outline btn-block mt8">← Back to Home</a>
+    </form>
+  </div>
+</div>
+<script src="js/api.js"></script>
+<script>
+  document.getElementById("login-form").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const errBox = document.getElementById("err");
+    errBox.style.display = "none";
+    try {
+      const data = await apiFetch("/api/auth/admin/login", { method:"POST", body: JSON.stringify({ username: qs("#l-user").value, password: qs("#l-pass").value }) });
+      setSession(data.token, "admin", data.user);
+      window.location.href = "admin-dashboard.html";
+    } catch (err) { errBox.textContent = err.message; errBox.style.display = "block"; }
+  });
+</script>
+</body>
+</html>

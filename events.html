@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Events | AAACET</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar">
+  <a href="index.html" class="logo-block"><div class="crest">AAA</div>
+    <div class="college-name"><strong>AAA College of Engineering</strong><span>and Technology, Sivakasi</span></div></a>
+  <ul class="nav-links"><li><a href="index.html">Home</a></li><li><a href="events.html" class="active">Events</a></li><li><a href="gallery.html">Gallery</a></li></ul>
+  <div class="nav-cta"><a href="student-login.html" class="btn btn-maroon">👤 Student Login</a><a href="staff-login.html" class="btn btn-gold">👤 Staff Login</a></div>
+</nav>
+
+<div class="container">
+  <div class="breadcrumb"><a href="index.html">Home</a> › Events</div>
+  <h1 style="color:var(--maroon-900);margin:0 0 18px;">Events</h1>
+
+  <div class="filters-bar">
+    <div class="field" style="flex:2"><label>Search</label><input id="f-search" placeholder="Search events by name..."></div>
+    <div class="field"><label>Department</label><select id="f-dept"><option value="">All Departments</option></select></div>
+    <div class="field"><label>Event Type</label><select id="f-type"><option value="">All Types</option></select></div>
+    <button class="btn btn-maroon" onclick="resetFilters()">↺ Reset Filters</button>
+  </div>
+
+  <div class="layout-2col">
+    <aside class="side-card"><h4>Event Categories</h4><ul class="cat-list" id="cat-list"></ul></aside>
+    <div>
+      <div class="section-title"><h2 style="font-size:19px">Upcoming Events</h2></div>
+      <div class="event-grid" id="events-grid" style="grid-template-columns:repeat(2,1fr)"><p class="muted">Loading…</p></div>
+      <div id="empty-msg" class="empty-box" style="display:none;margin-top:16px;"><span class="ei">🔎</span>No events match your filters.</div>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer" style="margin-top:50px">
+  <div class="container">
+    <div><h5>AAA College of Engineering and Technology</h5><p style="font-size:12.5px;color:#9ba3c4">Empowering Engineers, Shaping the Future.</p></div>
+    <div><h5>Quick Links</h5><ul><li>Home</li><li>Events</li><li>Gallery</li></ul></div>
+    <div><h5>Departments</h5><ul><li>CSE</li><li>IT</li><li>AI &amp; DS</li></ul></div>
+    <div><h5>Contact Us</h5><ul><li>📞 +91 4562 226655</li></ul></div>
+  </div>
+  <div class="footer-bottom">© 2026 AAA College of Engineering and Technology, Sivakasi. All Rights Reserved.</div>
+</footer>
+
+<script src="js/api.js"></script>
+<script>
+  let ALL_EVENTS = [];
+  const deptSel = document.getElementById("f-dept");
+  const typeSel = document.getElementById("f-type");
+  const catList = document.getElementById("cat-list");
+
+  function renderCats(activeType=""){
+    const types = [...new Set(ALL_EVENTS.map(e=>e.type))];
+    const cats = ["All Events", ...types];
+    catList.innerHTML = cats.map(c=>{
+      const count = c==="All Events" ? ALL_EVENTS.length : ALL_EVENTS.filter(e=>e.type===c).length;
+      const isActive = (c==="All Events" && !activeType) || c===activeType;
+      return `<li class="${isActive?'active':''}" onclick="typeSel.value='${c==='All Events'?'':c}';applyFilters()"><span>${c}</span><span>${count}</span></li>`;
+    }).join("");
+  }
+
+  function applyFilters(){
+    const search = document.getElementById("f-search").value.toLowerCase();
+    const dept = deptSel.value, type = typeSel.value;
+    const filtered = ALL_EVENTS.filter(e =>
+      e.name.toLowerCase().includes(search) && (!dept || e.department===dept) && (!type || e.type===type));
+    const grid = document.getElementById("events-grid");
+    document.getElementById("empty-msg").style.display = filtered.length ? "none" : "block";
+    grid.innerHTML = filtered.map(e => `
+      <div class="event-card">
+        <div class="event-banner ${bannerFor(e.type)}"><span class="badge">UPCOMING</span><span class="ename">${e.name}</span></div>
+        <div class="event-body">
+          <div class="dept">${e.department}</div>
+          <div class="event-meta"><div>📅 ${e.event_date}</div><div>📍 ${e.venue}</div><div>₹ Fee: ₹${e.fee}</div><div>💺 Seats: ${e.seats_total - e.seats_taken} left</div></div>
+          <a href="event-details.html?id=${e.id}" class="btn btn-outline btn-sm btn-block">View Details</a>
+        </div>
+      </div>`).join("");
+    renderCats(type);
+  }
+  function resetFilters(){ document.getElementById("f-search").value=""; deptSel.value=""; typeSel.value=""; applyFilters(); }
+
+  (async () => {
+    try {
+      ALL_EVENTS = await apiFetch("/api/events");
+      const depts = [...new Set(ALL_EVENTS.map(e=>e.department))];
+      const types = [...new Set(ALL_EVENTS.map(e=>e.type))];
+      depts.forEach(d => deptSel.innerHTML += `<option value="${d}">${d}</option>`);
+      types.forEach(t => typeSel.innerHTML += `<option value="${t}">${t}</option>`);
+      const deptParam = getParam("dept");
+      if (deptParam) { const m = depts.find(d => d.toLowerCase().includes(deptParam.toLowerCase())); if (m) deptSel.value = m; }
+      applyFilters();
+    } catch (err) {
+      document.getElementById("events-grid").innerHTML = `<p class="muted">Couldn't load events: ${err.message}</p>`;
+    }
+  })();
+  document.getElementById("f-search").addEventListener("input", applyFilters);
+  deptSel.addEventListener("change", applyFilters);
+  typeSel.addEventListener("change", applyFilters);
+</script>
+</body>
+</html>

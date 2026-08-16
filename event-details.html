@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Event Details | AAACET</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar">
+  <a href="index.html" class="logo-block"><div class="crest">AAA</div>
+    <div class="college-name"><strong>AAA College of Engineering</strong><span>and Technology, Sivakasi</span></div></a>
+  <ul class="nav-links"><li><a href="index.html">Home</a></li><li><a href="events.html" class="active">Events</a></li></ul>
+  <div class="nav-cta"><a href="student-login.html" class="btn btn-maroon">👤 Student Login</a><a href="staff-login.html" class="btn btn-gold">👤 Staff Login</a></div>
+</nav>
+
+<div class="container" id="page-content" style="padding-bottom:0"><p class="muted mt24">Loading event…</p></div>
+
+<script src="js/api.js"></script>
+<script>
+  (async () => {
+    const id = getParam("id");
+    try {
+      const e = await apiFetch("/api/events/" + id);
+      document.title = e.name + " | AAACET";
+      const seatsLeft = e.seats_total - e.seats_taken;
+      document.getElementById("page-content").innerHTML = `
+        <div class="breadcrumb"><a href="index.html">Home</a> › <a href="events.html">Events</a> › Event Details</div>
+        <div class="event-banner ${bannerFor(e.type)}" style="height:200px;border-radius:14px;align-items:flex-end;padding:22px;margin-bottom:18px;">
+          <span class="badge" style="top:16px;left:16px;">UPCOMING EVENT</span>
+          <span class="ename" style="font-size:26px">${e.name}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;">
+          <div>
+            <p class="muted" style="margin:0 0 4px;font-size:13px">Organized by</p>
+            <p style="color:var(--maroon-700);font-weight:700;margin:0 0 16px;">${e.department}</p>
+            <div class="grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px;">
+              <div class="panel"><h3>🏛️ Type</h3><p class="muted" style="margin:0">${e.type}</p></div>
+              <div class="panel"><h3>₹ Fee</h3><p class="muted" style="margin:0">₹${e.fee}</p></div>
+              <div class="panel"><h3>📅 Last Date</h3><p class="muted" style="margin:0">${e.last_date || "—"}</p></div>
+              <div class="panel"><h3>👥 Seats Left</h3><p class="muted" style="margin:0">${seatsLeft} / ${e.seats_total}</p></div>
+            </div>
+            <div class="panel" style="margin-bottom:20px;">
+              <h3>📖 About the Event</h3>
+              <p class="muted" style="line-height:1.6;font-size:13.5px">${e.about || "Details will be updated soon."}</p>
+            </div>
+            <div class="panel">
+              <h3>📋 Rules &amp; Regulations</h3>
+              <ul style="padding-left:18px;font-size:13px;color:var(--ink-600);line-height:1.9;margin:0">
+                <li>Participants must carry their valid college ID card.</li>
+                <li>Decision of the organizers will be final and binding.</li>
+                <li>Participants should report 30 minutes before the event.</li>
+                <li>Any misconduct may lead to disqualification.</li>
+              </ul>
+            </div>
+          </div>
+          <div>
+            <div class="panel" style="margin-bottom:18px;">
+              <h3>📅 Date, Time &amp; Venue</h3>
+              <p class="muted" style="font-size:13px;margin:4px 0">📅 ${e.event_date}</p>
+              <p class="muted" style="font-size:13px;margin:4px 0">⏰ ${e.event_time || "—"}</p>
+              <p class="muted" style="font-size:13px;margin:4px 0">📍 ${e.venue || "—"}</p>
+            </div>
+            <div class="panel">
+              <h3>🎫 Registration</h3>
+              <p class="muted" style="font-size:13px;display:flex;justify-content:space-between"><span>Fee</span><b>₹${e.fee}</b></p>
+              <p class="muted" style="font-size:13px;display:flex;justify-content:space-between"><span>Seats left</span><b>${seatsLeft}</b></p>
+              ${ seatsLeft > 0
+                  ? `<a href="registration.html?id=${e.id}" class="btn btn-navy btn-block mt16">Register Now →</a>`
+                  : `<button class="btn btn-block mt16" disabled style="background:#ddd;color:#888">Seats Full</button>` }
+              <p class="muted mt8" style="font-size:11.5px">You'll need to login as a student to register.</p>
+            </div>
+          </div>
+        </div>`;
+    } catch (err) {
+      document.getElementById("page-content").innerHTML = `<p class="muted mt24">Couldn't load event: ${err.message}</p>`;
+    }
+  })();
+</script>
+</body>
+</html>

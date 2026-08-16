@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard | AAACET</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="dash-shell">
+  <aside class="sidebar">
+    <div class="brand"><div class="crest" style="width:34px;height:34px;font-size:11px">AAA</div>ADMIN DASHBOARD</div>
+    <a class="mlink active" href="admin-dashboard.html">🏠 Dashboard</a>
+    <a class="mlink" href="#" onclick="logout();return false;" style="border-top:1px solid rgba(255,255,255,.08);margin-top:auto;padding-top:14px;">↩ Logout</a>
+  </aside>
+  <div class="dash-main">
+    <div class="dash-topbar">
+      <div style="font-weight:700;color:var(--maroon-900)">Admin Dashboard</div>
+      <div style="font-size:12.5px"><b>Super Administrator</b></div>
+    </div>
+    <div class="dash-body">
+      <div class="kpi-row" id="kpis" style="grid-template-columns:repeat(4,1fr)">
+        <div class="kpi"><b>…</b><span>Total Students</span></div>
+        <div class="kpi"><b>…</b><span>Total Staff</span></div>
+        <div class="kpi"><b>…</b><span>Total Events</span></div>
+        <div class="kpi"><b>…</b><span>Verified Registrations</span></div>
+      </div>
+      <div class="kpi-row" id="kpis2">
+        <div class="kpi"><b>…</b><span>Total Payments Verified (₹)</span></div>
+        <div class="kpi"><b>…</b><span>Pending Payments (₹)</span></div>
+        <div class="kpi"><b>…</b><span>Awaiting Verification</span></div>
+        <div class="kpi"><b><a href="staff-dashboard.html" style="color:var(--maroon-700);font-size:13px">Verify from Staff panel →</a></b></div>
+      </div>
+
+      <div class="two-col">
+        <div class="panel">
+          <div class="flex justify-between items-center"><h3 class="mb0">📅 All Events</h3></div>
+          <table class="mt8" id="events-table"><tr><td class="muted">Loading…</td></tr></table>
+        </div>
+        <div class="panel">
+          <div class="flex justify-between items-center"><h3 class="mb0">🧑‍💼 Add Staff Account</h3></div>
+          <p id="staff-err" style="color:var(--red);font-size:12.5px;display:none;"></p>
+          <form id="staff-form">
+            <div class="form-group"><label>Staff ID</label><input required id="s-id" placeholder="e.g. STAFF1030"></div>
+            <div class="form-group"><label>Name</label><input required id="s-name"></div>
+            <div class="form-group"><label>Department</label><input required id="s-dept"></div>
+            <div class="form-group"><label>Designation</label><input id="s-desig"></div>
+            <div class="form-group"><label>Email</label><input required type="email" id="s-email"></div>
+            <div class="form-group"><label>Password</label><input required type="password" id="s-pass"></div>
+            <button type="submit" class="btn btn-navy">➕ Add Staff</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>🎓 All Students</h3>
+        <table id="students-table"><tr><td class="muted">Loading…</td></tr></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+  requireRole("admin", "admin-login.html");
+
+  async function loadAll(){
+    const stats = await apiFetch("/api/admin/stats");
+    document.getElementById("kpis").innerHTML = `
+      <div class="kpi"><b>${stats.totalStudents}</b><span>Total Students</span></div>
+      <div class="kpi"><b>${stats.totalStaff}</b><span>Total Staff</span></div>
+      <div class="kpi"><b>${stats.totalEvents}</b><span>Total Events</span></div>
+      <div class="kpi"><b>${stats.totalRegs}</b><span>Verified Registrations</span></div>`;
+    document.getElementById("kpis2").innerHTML = `
+      <div class="kpi"><b>₹${stats.totalPayments}</b><span>Payments Verified</span></div>
+      <div class="kpi"><b>₹${stats.pendingPayments}</b><span>Pending Payments</span></div>
+      <div class="kpi"><b>${stats.pendingVerification}</b><span>Awaiting Verification</span></div>
+      <div class="kpi"><a href="staff-dashboard.html" style="color:var(--maroon-700);font-size:12.5px;font-weight:700">⚠️ Verify from Staff-style panel →</a></div>`;
+
+    const events = await apiFetch("/api/events");
+    document.getElementById("events-table").innerHTML = `<tr><th>Name</th><th>Dept</th><th>Date</th><th>Seats</th></tr>` +
+      events.map(e => `<tr><td>${e.name}</td><td>${e.department}</td><td>${e.event_date}</td><td>${e.seats_taken}/${e.seats_total}</td></tr>`).join("");
+
+    const students = await apiFetch("/api/admin/students");
+    document.getElementById("students-table").innerHTML = `<tr><th>Name</th><th>Reg No.</th><th>Dept</th><th>Year</th><th>Mobile</th><th>Email</th></tr>` +
+      (students.map(s => `<tr><td>${s.name}</td><td>${s.register_no}</td><td>${s.department}</td><td>${s.year}</td><td>${s.mobile}</td><td>${s.email}</td></tr>`).join("") || `<tr><td class="muted">No students yet.</td></tr>`);
+  }
+
+  document.getElementById("staff-form").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const errBox = document.getElementById("staff-err");
+    errBox.style.display = "none";
+    try {
+      await apiFetch("/api/admin/staff", { method:"POST", body: JSON.stringify({
+        staff_id: qs("#s-id").value, name: qs("#s-name").value, department: qs("#s-dept").value,
+        designation: qs("#s-desig").value, email: qs("#s-email").value, password: qs("#s-pass").value
+      })});
+      document.getElementById("staff-form").reset();
+      alert("Staff account created!");
+      loadAll();
+    } catch (err) { errBox.textContent = err.message; errBox.style.display = "block"; }
+  });
+
+  loadAll();
+</script>
+</body>
+</html>

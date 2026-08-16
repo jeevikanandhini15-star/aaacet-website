@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment | AAACET</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+<nav class="navbar">
+  <a href="index.html" class="logo-block"><div class="crest">AAA</div>
+    <div class="college-name"><strong>AAA College of Engineering</strong><span>and Technology, Sivakasi</span></div></a>
+  <ul class="nav-links"><li><a href="index.html">Home</a></li><li><a href="events.html">Events</a></li></ul>
+  <div class="nav-cta"><a href="student-dashboard.html" class="btn btn-maroon">👤 My Dashboard</a></div>
+</nav>
+
+<div class="container">
+  <div class="breadcrumb"><a href="index.html">Home</a> › <a href="events.html">Events</a> › Registration › Payment</div>
+  <div class="panel" style="margin-bottom:20px;">
+    <div class="flex justify-between items-center">
+      <div><h3 class="mb0" style="font-size:18px">💳 Payment</h3><p class="muted" style="margin:2px 0 0;font-size:13px">Complete your payment to confirm your registration</p></div>
+      <div class="stepper">
+        <div class="step done"><div class="dot">✓</div>Registration</div><div class="step-line"></div>
+        <div class="step active"><div class="dot">2</div>Payment</div><div class="step-line"></div>
+        <div class="step"><div class="dot">3</div>Confirmation</div>
+      </div>
+    </div>
+  </div>
+  <p id="err" style="color:var(--red);font-size:13px;display:none;"></p>
+  <div id="content" style="display:grid;grid-template-columns:1fr 1.1fr 1fr;gap:20px;"><p class="muted">Loading…</p></div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+  requireRole("student", "student-login.html");
+  const regId = getParam("reg");
+
+  (async () => {
+    try {
+      const r = await apiFetch("/api/registrations/" + regId);
+      if (r.status === "verified") { window.location.href = "success.html?reg=" + regId; return; }
+
+      document.getElementById("content").innerHTML = `
+        <div class="panel">
+          <h3>📅 Event &amp; Student Summary</h3>
+          <table>
+            <tr><td class="muted">Event Name</td><td style="text-align:right;font-weight:600">${r.event_name}</td></tr>
+            <tr><td class="muted">Student Name</td><td style="text-align:right;font-weight:600">${r.student_name}</td></tr>
+            <tr><td class="muted">Register No.</td><td style="text-align:right;font-weight:600">${r.register_no}</td></tr>
+            <tr><td class="muted">Department</td><td style="text-align:right;font-weight:600">${r.student_department}</td></tr>
+          </table>
+        </div>
+        <div class="panel">
+          <h3>💳 Payment Details</h3>
+          <p class="muted" style="font-size:12px;text-align:center;margin-bottom:6px;">Scan &amp; Pay using any UPI App</p>
+          <div class="qr-box"><div id="upi-qr"></div></div>
+          <table style="margin-top:14px;">
+            <tr><td class="muted">UPI ID</td><td style="text-align:right;font-weight:600">aaaevents@sbi</td></tr>
+            <tr><td class="muted">Account Name</td><td style="text-align:right;font-weight:600">AAA College of Engg</td></tr>
+            <tr><td class="muted">Bank</td><td style="text-align:right;font-weight:600">State Bank of India</td></tr>
+          </table>
+          <div class="panel" style="background:var(--maroon-50);border-color:#f0d9d9;margin-top:14px;padding:12px 14px;">
+            <p class="mb0" style="font-size:12.5px;display:flex;justify-content:space-between"><span>Amount to Pay</span><b style="color:var(--maroon-700);font-size:16px">₹${r.fee}</b></p>
+          </div>
+          <div class="form-group mt16"><label>Transaction ID / UTR Number *</label><input id="txn" placeholder="Enter Transaction ID / UTR Number"></div>
+          <div class="form-grid">
+            <div class="form-group"><label>Payment Date</label><input id="pdate" type="date"></div>
+            <div class="form-group"><label>Payment Time</label><input id="ptime" type="time"></div>
+          </div>
+          <div class="flex gap12 mt8">
+            <a href="student-dashboard.html" class="btn" style="background:#c0392b;color:#fff">← Back</a>
+            <button id="verify-btn" class="btn btn-navy" style="flex:1">✓ Submit Payment</button>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>📖 Payment Instructions</h3>
+          <ol style="padding-left:18px;font-size:12.5px;color:var(--ink-600);line-height:2">
+            <li>Scan the QR Code using any UPI App.</li>
+            <li>Pay the exact amount mentioned.</li>
+            <li>Enter the Transaction ID / UTR Number you received.</li>
+            <li>Submit — your registration will show "Waiting for Verification".</li>
+            <li>Once an admin/staff verifies it, your QR Entry Pass unlocks automatically.</li>
+          </ol>
+        </div>`;
+      renderQR(document.getElementById("upi-qr"), `upi://pay?pa=aaaevents@sbi&pn=AAACET&am=${r.fee}&cu=INR`);
+
+      document.getElementById("verify-btn").addEventListener("click", async () => {
+        const errBox = document.getElementById("err");
+        errBox.style.display = "none";
+        const txn = document.getElementById("txn").value.trim();
+        if (!txn) { errBox.textContent = "Please enter your Transaction ID / UTR Number."; errBox.style.display = "block"; return; }
+        try {
+          await apiFetch(`/api/registrations/${regId}/payment`, {
+            method: "POST",
+            body: JSON.stringify({ txn_id: txn, amount: r.fee, payment_date: qs("#pdate").value, payment_time: qs("#ptime").value })
+          });
+          window.location.href = "success.html?reg=" + regId;
+        } catch (err) {
+          errBox.textContent = err.message; errBox.style.display = "block";
+        }
+      });
+    } catch (err) {
+      document.getElementById("content").innerHTML = `<p class="muted">Couldn't load registration: ${err.message}</p>`;
+    }
+  })();
+</script>
+</body>
+</html>

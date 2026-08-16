@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AAA College of Engineering and Technology, Sivakasi</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar">
+  <a href="index.html" class="logo-block"><div class="crest">AAA</div>
+    <div class="college-name"><strong>AAA College of Engineering</strong><span>and Technology, Sivakasi</span></div></a>
+  <ul class="nav-links">
+    <li><a href="index.html" class="active">Home</a></li>
+    <li><a href="events.html">Events</a></li>
+    <li><a href="gallery.html">Gallery</a></li>
+    <li><a href="index.html#depts">Departments</a></li>
+    <li><a href="index.html#contact">Contact Us</a></li>
+  </ul>
+  <div class="nav-cta">
+    <a href="student-login.html" class="btn btn-maroon">👤 Student Login</a>
+    <a href="staff-login.html" class="btn btn-gold">👤 Staff Login</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="container hero-inner">
+    <div>
+      <span class="hero-eyebrow">Welcome to</span>
+      <h1>AAA College of<br>Engineering and <span class="accent">Technology</span><br>Sivakasi</h1>
+      <p>One platform for all college events, registrations &amp; activities — discover, register and get your entry pass in minutes.</p>
+      <div class="hero-actions">
+        <a href="events.html" class="btn btn-gold">Explore Events →</a>
+        <a href="admin-login.html" class="btn btn-outline" style="color:#fff;border-color:rgba(255,255,255,.5)">Admin Login →</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <span class="tag">AAACET Campus</span>
+      <img src="https://images.unsplash.com/photo-1562774053-701939374585?w=900&q=60" alt="College campus building" onerror="this.style.display='none'">
+    </div>
+  </div>
+</header>
+
+<section class="stats-bar">
+  <div class="container">
+    <div class="stat"><div class="icon">🎓</div><div><b id="s-students">…</b><span>Total Students</span></div></div>
+    <div class="stat"><div class="icon">👥</div><div><b id="s-staff">…</b><span>Faculties</span></div></div>
+    <div class="stat"><div class="icon">🏛️</div><div><b>8</b><span>Departments</span></div></div>
+    <div class="stat"><div class="icon">📅</div><div><b id="s-events">…</b><span>Total Events</span></div></div>
+    <div class="stat"><div class="icon">🏅</div><div><b id="s-upcoming">…</b><span>Upcoming Events</span></div></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-title"><h2>Upcoming Events</h2><a href="events.html" class="btn btn-outline btn-sm">View All Events →</a></div>
+    <div class="event-grid" id="home-event-grid"><p class="muted">Loading events…</p></div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0" id="depts">
+  <div class="container">
+    <div class="section-title"><h2>Our Departments</h2></div>
+    <div class="dept-grid">
+      <a class="dept-tile" href="events.html?dept=CSE"><span class="di">💻</span>CSE</a>
+      <a class="dept-tile" href="events.html?dept=IT"><span class="di">🖥️</span>IT</a>
+      <a class="dept-tile" href="events.html?dept=AIDS"><span class="di">🧠</span>AIDS</a>
+      <a class="dept-tile" href="events.html?dept=Cyber"><span class="di">🛡️</span>CYBER</a>
+      <a class="dept-tile" href="events.html?dept=ECE"><span class="di">📡</span>ECE</a>
+      <a class="dept-tile" href="events.html?dept=EEE"><span class="di">⚡</span>EEE</a>
+      <a class="dept-tile" href="events.html?dept=Civil"><span class="di">🏗️</span>CIVIL</a>
+      <a class="dept-tile" href="events.html?dept=Mech"><span class="di">⚙️</span>MECHANICAL</a>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer" id="contact">
+  <div class="container">
+    <div><h5>AAA College of Engineering and Technology</h5><p style="font-size:12.5px;color:#9ba3c4">Empowering Engineers, Shaping the Future.</p></div>
+    <div><h5>Quick Links</h5><ul><li>Home</li><li>Events</li><li>Departments</li><li>Gallery</li></ul></div>
+    <div><h5>Departments</h5><ul><li>CSE</li><li>IT</li><li>AI &amp; DS</li><li>ECE / EEE</li></ul></div>
+    <div><h5>Contact Us</h5><ul><li>📞 +91 4562 226655</li><li>✉️ info@aaacet.ac.in</li><li>📍 Amathur, Sivakasi - 626 005</li></ul></div>
+  </div>
+  <div class="footer-bottom">© 2026 AAA College of Engineering and Technology, Sivakasi. All Rights Reserved.</div>
+</footer>
+
+<script src="js/api.js"></script>
+<script>
+  (async () => {
+    try {
+      const events = await apiFetch("/api/events");
+      document.getElementById("s-events").textContent = events.length;
+      document.getElementById("s-upcoming").textContent = events.filter(e => e.status === "upcoming").length;
+      const grid = document.getElementById("home-event-grid");
+      grid.innerHTML = events.slice(0, 4).map(e => `
+        <div class="event-card">
+          <div class="event-banner ${bannerFor(e.type)}"><span class="badge">UPCOMING</span><span class="ename">${e.name}</span></div>
+          <div class="event-body">
+            <div class="dept">${e.department}</div>
+            <div class="event-meta">
+              <div>📅 ${e.event_date}</div>
+              <div>📍 ${e.venue}</div>
+              <div>₹ Registration Fee: ₹${e.fee}</div>
+            </div>
+            <a href="event-details.html?id=${e.id}" class="btn btn-outline btn-sm btn-block">View Details</a>
+          </div>
+        </div>`).join("") || `<p class="muted">No events yet.</p>`;
+    } catch (err) {
+      document.getElementById("home-event-grid").innerHTML = `<p class="muted">Couldn't load events: ${err.message}</p>`;
+    }
+    document.getElementById("s-students").textContent = "1500+";
+    document.getElementById("s-staff").textContent = "150+";
+  })();
+</script>
+</body>
+</html>
