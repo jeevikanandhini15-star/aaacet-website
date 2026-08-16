@@ -12,7 +12,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "aaacet_dev_secret_change_this_in_p
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(__dirname));
 
 // ---------- Helpers ----------
 function sign(payload) { return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" }); }
